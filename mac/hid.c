@@ -787,6 +787,13 @@ static int set_report(hid_device *dev, IOHIDReportType type, const unsigned char
 	return -1;
 }
 
+int HID_API_EXPORT HID_API_CALL hid_fileno(hid_device *device) {
+	// @note - I don't know if this is useful outside linux and
+	//    I don't care.
+	return -1;
+}
+
+
 int HID_API_EXPORT hid_write(hid_device *dev, const unsigned char *data, size_t length)
 {
 	return set_report(dev, kIOHIDReportTypeOutput, data, length);

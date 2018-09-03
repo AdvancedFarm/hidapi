@@ -87,7 +87,7 @@ extern "C" {
 			needed.  This function should be called at the beginning of
 			execution however, if there is a chance of HIDAPI handles
 			being opened by different threads simultaneously.
-			
+
 			@ingroup API
 
 			@returns
@@ -173,6 +173,11 @@ extern "C" {
 				success or NULL on failure.
 		*/
 		HID_API_EXPORT hid_device * HID_API_CALL hid_open_path(const char *path);
+
+		/** @brief Get the file handle for the HID device file.
+
+	   */
+		int HID_API_EXPORT HID_API_CALL hid_fileno(hid_device *device);
 
 		/** @brief Write an Output report to a HID device.
 
@@ -388,4 +393,3 @@ extern "C" {
 #endif
 
 #endif
-

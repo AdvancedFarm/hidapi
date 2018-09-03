@@ -999,6 +999,11 @@ hid_device * HID_API_EXPORT hid_open_path(const char *path)
 	}
 }
 
+int HID_API_EXPORT HID_API_CALL hid_fileno(hid_device *device) {
+	// @note - not useful here
+	return -1;
+}
+
 
 int HID_API_EXPORT hid_write(hid_device *dev, const unsigned char *data, size_t length)
 {
