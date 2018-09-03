@@ -502,39 +502,42 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 							"usb_device");
 
 					if (!usb_dev) {
-						/* Free this device */
-						free(cur_dev->serial_number);
-						free(cur_dev->path);
-						free(cur_dev);
+						/*
+						The problem seems to be related to the udev library:
 
-						/* Take it off the device list. */
-						if (prev_dev) {
-							prev_dev->next = NULL;
-							cur_dev = prev_dev;
-						}
-						else {
-							cur_dev = root = NULL;
-						}
+						  udev_device_get_parent_with_subsystem_devtype()
 
-						goto next;
-					}
+						is returning NULL for vitually generated devices only. Thus
+						a quick fix is to handle such cases by giving the
+						following member variables empty values. A deep look
+						into libudev might be required in order to get values
+						for the missing data fields.
+						*/
+						/* Manufacturer and Product strings */
+						cur_dev->manufacturer_string = wcsdup(L" ");
+						cur_dev->product_string = wcsdup(L" ");
+						cur_dev->release_number = 0;
+						cur_dev->interface_number = 0;
 
-					/* Manufacturer and Product strings */
-					cur_dev->manufacturer_string = copy_udev_string(usb_dev, device_string_names[DEVICE_STRING_MANUFACTURER]);
-					cur_dev->product_string = copy_udev_string(usb_dev, device_string_names[DEVICE_STRING_PRODUCT]);
+					} else {
 
-					/* Release Number */
-					str = udev_device_get_sysattr_value(usb_dev, "bcdDevice");
-					cur_dev->release_number = (str)? strtol(str, NULL, 16): 0x0;
+						/* Manufacturer and Product strings */
+						cur_dev->manufacturer_string = copy_udev_string(usb_dev, device_string_names[DEVICE_STRING_MANUFACTURER]);
+						cur_dev->product_string = copy_udev_string(usb_dev, device_string_names[DEVICE_STRING_PRODUCT]);
 
-					/* Get a handle to the interface's udev node. */
-					intf_dev = udev_device_get_parent_with_subsystem_devtype(
+						/* Release Number */
+						str = udev_device_get_sysattr_value(usb_dev, "bcdDevice");
+						cur_dev->release_number = (str)? strtol(str, NULL, 16): 0x0;
+
+						/* Get a handle to the interface's udev node. */
+						intf_dev = udev_device_get_parent_with_subsystem_devtype(
 							raw_dev,
 							"usb",
 							"usb_interface");
-					if (intf_dev) {
-						str = udev_device_get_sysattr_value(intf_dev, "bInterfaceNumber");
-						cur_dev->interface_number = (str)? strtol(str, NULL, 16): -1;
+						if (intf_dev) {
+							str = udev_device_get_sysattr_value(intf_dev, "bInterfaceNumber");
+							cur_dev->interface_number = (str)? strtol(str, NULL, 16): -1;
+						}
 					}
 
 					break;
